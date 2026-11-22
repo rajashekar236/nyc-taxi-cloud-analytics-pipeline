@@ -15,7 +15,7 @@ checks**, tests hypotheses about rider tipping with **statistical analysis**, an
 
 ```mermaid
 flowchart LR
-    A[NYC TLC public files<br/>Parquet, ~3M rows/month] -->|Python: download + normalize schema| B[Cloud Storage<br/>raw data lake]
+    A[NYC TLC public files<br/>Parquet, ~3M rows/month] -->|Python: download + normalize schema| B[Cloud Storage<br/>optional raw data lake]
     B -->|Load jobs| C[BigQuery taxi_raw<br/>one table per month]
     C -->|SQL transforms| D[stg_trips<br/>dedupe + quality tags]
     D --> E[Star schema<br/>fact_trips + 4 dimensions]
@@ -102,58 +102,60 @@ Run on January–March 2024. Full outputs are in [`reports/`](reports/).
 
 ---
 
-## Run it yourself
-
-### 1. One-time Google Cloud setup
-
-1. Create a project at <https://console.cloud.google.com> and note its **project ID**.
-2. Enable the **BigQuery API** (and **Cloud Storage** if you'll use a bucket).
-3. Install the [Google Cloud CLI](https://cloud.google.com/sdk/docs/install), then sign in locally:
-   ```
-   gcloud auth application-default login
-   ```
-4. *(Optional)* Create a bucket for the raw data lake:
-   ```
-   gcloud storage buckets create gs://YOUR-UNIQUE-BUCKET --location=US
-   ```
-   On the free **BigQuery sandbox** (no billing account), skip the bucket and leave
-   `GCS_BUCKET` empty. Files then load straight into BigQuery. Sandbox tables expire after 60 days.
-
-### 2. Install and configure
-
-```
-python -m venv .venv
-.venv\Scripts\activate          # macOS/Linux: source .venv/bin/activate
-pip install -r requirements.txt
-copy .env.example .env          # macOS/Linux: cp .env.example .env
-```
-
-Edit `.env` and set `GCP_PROJECT_ID` (and `GCS_BUCKET` if you made one).
-
-### 3. Run
-
-```
-pytest -q                       # offline tests, no cloud needed
-python run_pipeline.py          # extract/load -> transform -> data quality -> analysis
-```
-
-Or run one step at a time: `python run_pipeline.py --steps transform dq`
-
-### 4. Dashboard
-
-Follow [docs/powerbi_guide.md](docs/powerbi_guide.md).
-
 ## Project layout
 
 ```
-pipeline/   extract_load.py   download, normalize, Cloud Storage, BigQuery load
-            transform.py      runs sql/ files in order
-            data_quality.py   11 automated checks -> dq_results table
-analysis/   stats_analysis.py hypothesis tests + regression -> reports/
-sql/        01 staging · 02-04 dimensions · 05 fact · 06 marts
-tests/      offline unit tests
-docs/       Power BI build guide
+pipeline/    extract_load.py    download, normalize schema, load into BigQuery
+             transform.py       runs the sql/ files in order
+             data_quality.py    11 automated checks -> dq_results table
+sql/         01 staging · 02-04 dimensions · 05 fact · 06 marts
+analysis/    stats_analysis.py  hypothesis tests + regression
+reports/     results from the latest run (quality checks, statistics, charts)
+dashboard/   NYC_Taxi_Dashboard.pbix (open in Power BI Desktop)
+docs/        dashboard screenshots + Power BI build guide
+tests/       offline unit tests
 ```
+
+<details>
+<summary><b>Run it yourself</b> (about 15 minutes, free BigQuery sandbox)</summary>
+
+<br>
+
+**You need:** Python 3.12, the [Google Cloud CLI](https://cloud.google.com/sdk/docs/install),
+and a Google Cloud project. The free [BigQuery sandbox](https://cloud.google.com/bigquery/docs/sandbox)
+works without a billing account (note that sandbox tables expire after 60 days).
+
+**1. Sign in to Google Cloud**
+
+```
+gcloud auth application-default login
+gcloud auth application-default set-quota-project YOUR-PROJECT-ID
+```
+
+**2. Install**
+
+```
+py -3.12 -m venv .venv
+.venv\Scripts\python -m pip install -r requirements.txt
+copy .env.example .env
+```
+
+Edit `.env` and set `GCP_PROJECT_ID`. Leave `GCS_BUCKET` empty on the sandbox.
+(On macOS/Linux, use `python3.12`, `.venv/bin/python` and `cp`.)
+
+**3. Run**
+
+```
+.venv\Scripts\python -m pytest -q          # offline tests, no cloud needed
+.venv\Scripts\python run_pipeline.py       # load -> transform -> quality checks -> analysis
+```
+
+Run individual steps with `--steps`, for example `run_pipeline.py --steps transform dq`.
+
+**4. Dashboard:** open `dashboard/NYC_Taxi_Dashboard.pbix`, or rebuild it with
+[docs/powerbi_guide.md](docs/powerbi_guide.md).
+
+</details>
 
 ## Next steps
 

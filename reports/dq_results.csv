@@ -1,0 +1,12 @@
+run_at,check_name,severity,rule,value,passed
+2026-11-22 20:37:49.571875+00:00,fact_has_rows,error,fact_trips is not empty,9206805.0,True
+2026-11-22 20:37:49.571875+00:00,raw_to_staging_reconciles,error,staging never has more rows than raw (difference = duplicates removed),1.0,True
+2026-11-22 20:37:49.571875+00:00,staging_to_fact_reconciles,error,every clean staging row lands in fact_trips exactly once,0.0,True
+2026-11-22 20:37:49.571875+00:00,duplicate_trip_ids,error,trip_id is unique,0.0,True
+2026-11-22 20:37:49.571875+00:00,null_keys,error,no NULL foreign keys,0.0,True
+2026-11-22 20:37:49.571875+00:00,orphan_zones,error,every zone key exists in dim_zone,0.0,True
+2026-11-22 20:37:49.571875+00:00,orphan_payment_types,error,every payment type exists in dim_payment_type,0.0,True
+2026-11-22 20:37:49.571875+00:00,orphan_dates,error,every pickup date exists in dim_date,0.0,True
+2026-11-22 20:37:49.571875+00:00,all_months_present,error,every configured month has data,0.0,True
+2026-11-22 20:37:49.571875+00:00,excluded_row_pct,warn,no more than 10% of rows fail quality rules,3.64,True
+2026-11-22 20:37:49.571875+00:00,tip_exceeds_fare_pct,warn,no more than 2% of card trips tip over 100% of fare,0.13,True

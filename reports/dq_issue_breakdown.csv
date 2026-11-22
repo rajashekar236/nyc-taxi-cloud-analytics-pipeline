@@ -1,0 +1,8 @@
+dq_issue,row_count,pct
+clean,9206805,96.36
+zero_distance,213243,2.23
+negative_amount,126269,1.32
+duration_over_6h,5434,0.06
+non_positive_duration,2801,0.03
+distance_over_200mi,169,0.0
+out_of_period,56,0.0
